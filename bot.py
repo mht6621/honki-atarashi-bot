@@ -41,6 +41,24 @@ def generate_speech(text):
         print("音声生成に失敗:", response.status_code, response.text)
         return False
 
+def get_character_usage():
+    url = "https://api.elevenlabs.io/v1/user/subscription"
+    headers = {
+        "xi-api-key": ELEVEN_API_KEY
+    }
+
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        used = data.get("character_count", 0)
+        limit = data.get("character_limit", 1)
+        remaining = limit - used
+        return remaining, limit
+    else:
+        print("❌ 使用量の取得に失敗:", response.status_code)
+        return None, None
+
+
 @bot.event
 async def on_ready():
     print(f"ログインしました: {bot.user}")
@@ -122,6 +140,16 @@ async def set_read_channel(ctx):
 
     await ctx.send(f"✅ このチャンネル（{ctx.channel.name}）を読み上げ対象に設定しました！")
 
+@bot.command()
+async def status(ctx):
+    remaining, limit = get_character_usage()
+    if remaining is not None:
+        await ctx.send(
+            f"📊 ElevenLabs の使用状況\n"
+            f"📝 残り文字数: `{remaining:,}` / `{limit:,}`"
+        )
+    else:
+        await ctx.send("❌ ElevenLabsのステータス取得に失敗しました…")
 
 import os
 
