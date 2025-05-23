@@ -3,8 +3,8 @@ nixPkgs = ["python312Full", "ffmpeg", "libopus"]
 
 [phases.install]
 cmds = [
-  "/nix/store/*-python3.12*/bin/python3.12 -m ensurepip",
-  "/nix/store/*-python3.12*/bin/python3.12 -m pip install --upgrade pip",
-  "/nix/store/*-python3.12*/bin/python3.12 -m pip install -r requirements.txt",
-  "/nix/store/*-python3.12*/bin/python3.12 -m pip install opuslib"
+  "python3.12 -m ensurepip",
+  "python3.12 -m pip install --upgrade pip",
+  "python3.12 -m pip install -r requirements.txt",
+  "python3.12 -m pip install opuslib"
 ]
