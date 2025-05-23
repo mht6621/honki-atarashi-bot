@@ -49,7 +49,12 @@ async def on_ready():
 async def join(ctx):
     if ctx.author.voice:
         await ctx.author.voice.channel.connect()
-        await ctx.send("ボイスチャンネルに参加しました！")
+        await ctx.send(
+        "🐬 ボイスチャンネルに入室しました\n"
+        "📣 このBotはユーザーの支援で運営されています！\n"
+        "✨ サブスクプランを見るには → `!support`\n"
+        "💖 ご支援はこちら → https://mahito-discord.fanbox.cc/"
+    )
     else:
         await ctx.send("先にボイスチャンネルに入ってね！")
 
