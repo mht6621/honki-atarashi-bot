@@ -1,3 +1,5 @@
+import json  # ← 読み上げチャンネルの保存に使う
+
 import os
 from dotenv import load_dotenv
 import discord
@@ -82,12 +84,39 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    if message.channel.name == "読み上げ":
+    try:
+        with open("read_channel.json", "r") as f:
+            data = json.load(f)
+        target_channel_id = data.get(str(message.guild.id))
+    except:
+        target_channel_id = None
+
+    if message.channel.id == target_channel_id:
         if generate_speech(message.content):
             if message.guild.voice_client:
                 message.guild.voice_client.play(discord.FFmpegPCMAudio("output.mp3"))
 
     await bot.process_commands(message)
+
+
+@bot.command()
+async def set_read_channel(ctx):
+    guild_id = str(ctx.guild.id)
+    channel_id = ctx.channel.id
+
+    try:
+        with open("read_channel.json", "r") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
+
+    data[guild_id] = channel_id
+
+    with open("read_channel.json", "w") as f:
+        json.dump(data, f)
+
+    await ctx.send(f"✅ このチャンネル（{ctx.channel.name}）を読み上げ対象に設定しました！")
+
 
 import os
 
