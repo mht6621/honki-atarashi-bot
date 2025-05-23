@@ -1,0 +1,94 @@
+import os
+from dotenv import load_dotenv
+import discord
+from discord.ext import commands
+import requests  
+
+load_dotenv()
+
+ELEVEN_API_KEY = os.getenv("ELEVEN_API_KEY")
+VOICE_ID = os.getenv("VOICE_ID")
+
+intents = discord.Intents.default()
+intents.message_content = True
+intents.voice_states = True  # ボイスチャンネル用
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+# 🔊 ElevenLabsで音声生成する関数
+def generate_speech(text):
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
+    headers = {
+        "xi-api-key": ELEVEN_API_KEY,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "text": text,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": 0.75,
+            "similarity_boost": 0.75
+        }
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code == 200:
+        with open("output.mp3", "wb") as f:
+            f.write(response.content)
+        return True
+    else:
+        print("音声生成に失敗:", response.status_code, response.text)
+        return False
+
+@bot.event
+async def on_ready():
+    print(f"ログインしました: {bot.user}")
+
+@bot.command()
+async def join(ctx):
+    if ctx.author.voice:
+        await ctx.author.voice.channel.connect()
+        await ctx.send("ボイスチャンネルに参加しました！")
+    else:
+        await ctx.send("先にボイスチャンネルに入ってね！")
+
+@bot.command()
+async def leave(ctx):
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+        await ctx.send("ボイスチャンネルから退出しました！")
+    else:
+        await ctx.send("まだボイスチャンネルにいないよ！")
+
+@bot.command()
+async def say(ctx, *, message: str):
+    if ctx.channel.name != "読み上げ":
+        await ctx.send("このチャンネルでは読み上げできません！")
+        return
+
+    await ctx.send(f"読み上げます: {message}")
+
+    if generate_speech(message):
+        if ctx.voice_client:
+            ctx.voice_client.play(discord.FFmpegPCMAudio("output.mp3"))
+        else:
+            await ctx.send("ボイスチャンネルに入ってないよ！")
+
+@bot.command()
+async def where(ctx):
+    await ctx.send(f"このチャンネルの名前は「{ctx.channel.name}」です！")
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if message.channel.name == "読み上げ":
+        if generate_speech(message.content):
+            if message.guild.voice_client:
+                message.guild.voice_client.play(discord.FFmpegPCMAudio("output.mp3"))
+
+    await bot.process_commands(message)
+
+import os
+
+bot.run(os.getenv("DISCORD_TOKEN"))
