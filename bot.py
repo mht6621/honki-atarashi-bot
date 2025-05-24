@@ -70,7 +70,7 @@ async def join(ctx):
         await ctx.send(
         "🐬 ボイスチャンネルに入室しました\n"
         "\n"
-        "📣 このBotはユーザーの支援で運営されています！\n"
+        "📣 このBotはまひとが月に割とそこそこ払いながら運営してます；；\n"
         "💖 ご支援はこちら → https://mahito-discord.fanbox.cc/"
     )
     else:
